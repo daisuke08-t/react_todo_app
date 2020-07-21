@@ -20,6 +20,8 @@ function TodoItem(props) {
       {props.todo.title}
       </span>
       </label>
+      <span className="cmd" onClick={() => 
+      props.deleteTodo(props.todo)}>[x]</span>
     </li>
     );
 }
@@ -30,23 +32,53 @@ function TodoList(props) {
     return(
       <TodoItem key={todo.id} todo={todo}
       checkTodo={props.checkTodo}
+      deleteTodo={props.deleteTodo}
       />
       );
   });
   return(
     <ul>
-      {todos}
+      {props.todos.length ? todos : <li>Nothing to do!</li>}
     </ul>
     );
 }
+
+
+function TodoForm(props) {
+  return(
+    <form>
+      <input type="text" value={props.item} onChange={props.updateItem}/>
+      <input type="submit" value="Add"/>
+    </form>
+    );
+}
+
 
 class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      todos: todos
+      todos: todos,
+      item: ''
     };
     this.checkTodo = this.checkTodo.bind(this);
+    this.deleteTodo = this.deleteTodo.bind(this);
+  }
+  
+  
+  deleteTodo(todo) {
+    // if(!confirm('are you sure?')) {
+    //   return;
+    // }
+    
+    
+    const todos = this.state.todos.slice();
+    const pos = this.state.todos.indexOf(todo);
+    
+    todos.splice(pos, 1);
+    this.setState({
+      todos: todos
+    });
   }
   
   
@@ -72,10 +104,14 @@ class App extends React.Component {
   
   render() {
     return(
-      <div>
+      <div className="container">
         <h1>My todo</h1>
         <TodoList todos={this.state.todos}
         checkTodo={this.checkTodo}
+        deleteTodo={this.deleteTodo}
+        />
+        <TodoForm 
+        item={this.state.item}
         />
       </div>
       );

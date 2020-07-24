@@ -3,14 +3,30 @@ import './App.css';
 
 
 const todos = [
-  {id: 0, title: 'Task 0', isDone: false},
-  {id: 1, title: 'Task 1', isDone: false},
-  {id: 2, title: 'Task 2', isDone: true},
+  // {id: 0, title: 'Task 0', isDone: false},
+  // {id: 1, title: 'Task 1', isDone: false},
+  // {id: 2, title: 'Task 2', isDone: true},
   ];
+  
+function TodoHeader(props) {
+  
+  const remaining = props.todos.filter(todo => {
+    return !todo.isDone;
+  });
+  
+  return(
+    <h1>
+      <button onClick={props.purge}>Purge</button>
+      My Todos
+      <span>({remaining.length}/{props.todos.length})</span>
+    </h1>
+    
+    );
+}
 
 function TodoItem(props) {
   return(
-    <li key={props.todo.id}>
+    <li>
       <label>
       <input type="checkbox" 
       checked={props.todo.isDone}
@@ -46,11 +62,15 @@ function TodoList(props) {
 
 function TodoForm(props) {
   return(
-    <form>
+    <form onSubmit={props.addTodo}>
       <input type="text" value={props.item} onChange={props.updateItem}/>
       <input type="submit" value="Add"/>
     </form>
     );
+}
+
+function getUniqueId() {
+  return new Date().getTime().toString(36) + '-' + Math.random().toString(36);
 }
 
 
@@ -63,6 +83,47 @@ class App extends React.Component {
     };
     this.checkTodo = this.checkTodo.bind(this);
     this.deleteTodo = this.deleteTodo.bind(this);
+    this.updateItem = this.updateItem.bind(this);
+    this.addTodo = this.addTodo.bind(this);
+    this.purge = this.purge.bind(this);
+  }
+  
+  purge() {
+    // if(!confirm('are you sure?')) {
+    //   return;
+    // }
+    
+    const todos = this.state.todos.filter(todo => {
+      return !todo.isDone;
+    });
+    
+    this.setState({
+      todos: todos
+      
+    });
+    
+  }
+  
+  addTodo(e) {
+    e.preventDefault();
+    
+    if(this.state.item.trim() === '') {
+      return;
+    }
+    
+    const item = {
+      id: getUniqueId(),
+      title: this.state.item,
+      isDone: false
+    };
+    
+    const todos = this.state.todos.slice();
+    todos.push(item);
+    
+    this.setState({
+      todos: todos,
+      item: ''
+    });
   }
   
   
@@ -102,16 +163,38 @@ class App extends React.Component {
   }
   
   
+  updateItem(e) {
+    this.setState({
+      item: e.target.value
+    });
+  }
+  
+  componentDidUpdate() {
+    localStorage.setItem('todos', JSON.stringify(this.state.todos));
+  }
+  
+  componentDidMount() {
+    this.setState({
+      todos: JSON.parse(localStorage.getItem('todos')) || []
+    });
+  }
+  
+  
   render() {
     return(
       <div className="container">
-        <h1>My todo</h1>
+        <TodoHeader 
+        todos={this.state.todos}
+        purge={this.purge}
+        />
         <TodoList todos={this.state.todos}
         checkTodo={this.checkTodo}
         deleteTodo={this.deleteTodo}
         />
         <TodoForm 
         item={this.state.item}
+        updateItem={this.updateItem}
+        addTodo={this.addTodo}
         />
       </div>
       );
